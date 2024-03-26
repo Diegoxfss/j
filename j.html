@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Character Shooting Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #character {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: red;
+        }
+        .bullet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: blue;
+        }
+        .enemy {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: green;
+            border-radius: 50%;
+        }
+        #message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            display: none;
+        }
+        #restart-btn {
+            position: fixed;
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align: center;">Character Shooting Game</h1>
+
+<div id="game-container">
+    <div id="character"></div>
+</div>
+<div id="message"></div>
+<button id="restart-btn" onclick="restartGame()">Restart Game</button>
+
+<script>
+    const gameContainer = document.getElementById('game-container');
+    const character = document.getElementById('character');
+    const message = document.getElementById('message');
+    const restartButton = document.getElementById('restart-btn');
+
+    let posX = 0;
+    let posY = 0;
+    let isGameOver = false;
+    let score = 0;
+
+    function updateCharacterPosition() {
+        character.style.left = posX + 'px';
+        character.style.top = posY + 'px';
+    }
+
+    function handleKeyPress(event) {
+        if (isGameOver) return;
+
+        const arrowLeft = 37;
+        const arrowUp = 38;
+        const arrowRight = 39;
+        const arrowDown = 40;
+        const spacebar = 32;
+
+        if (event.keyCode === arrowLeft && posX > 0) {
+            posX -= 10;
+        } else if (event.keyCode === arrowUp && posY > 0) {
+            posY -= 10;
+        } else if (event.keyCode === arrowRight && posX < gameContainer.clientWidth - character.offsetWidth) {
+            posX += 10;
+        } else if (event.keyCode === arrowDown && posY < gameContainer.clientHeight - character.offsetHeight) {
+            posY += 10;
+        } else if (event.keyCode === spacebar) {
+            shootBullet();
+        }
+
+        updateCharacterPosition();
+    }
+
+    document.addEventListener('keydown', handleKeyPress);
+
+    function shootBullet() {
+        const bullet = document.createElement('div');
+        bullet.classList.add('bullet');
+        bullet.style.left = (posX + (character.offsetWidth / 2) - 10) + 'px';
+        bullet.style.top = (posY + (character.offsetHeight / 2) - 10) + 'px';
+        gameContainer.appendChild(bullet);
+
+        let bulletPosY = posY + (character.offsetHeight / 2) - 10;
+        const bulletInterval = setInterval(() => {
+            bulletPosY -= 5;
+            bullet.style.top = bulletPosY + 'px';
+
+            if (bulletPosY < 0) {
+                clearInterval(bulletInterval);
+                gameContainer.removeChild(bullet);
+            }
+
+            checkCollision(bullet);
+        }, 10);
+    }
+
+    function createEnemy() {
+        const enemy = document.createElement('div');
+        enemy.classList.add('enemy');
+        enemy.style.left = Math.random() * (gameContainer.clientWidth - 50) + 'px';
+        enemy.style.top = Math.random() * (gameContainer.clientHeight - 50) + 'px';
+        gameContainer.appendChild(enemy);
+    }
+
+    function moveEnemies() {
+        const enemies = document.querySelectorAll('.enemy');
+        enemies.forEach(enemy => {
+            enemy.style.left = parseInt(enemy.style.left) + Math.random() * 10 - 5 + 'px';
+            enemy.style.top = parseInt(enemy.style.top) + Math.random() * 10 - 5 + 'px';
+        });
+    }
+
+    function checkCollision(bullet) {
+        const bullets = document.querySelectorAll('.bullet');
+        bullets.forEach(b => {
+            if (b !== bullet) {
+                const bRect = b.getBoundingClientRect();
+                const bulletRect = bullet.getBoundingClientRect();
+                if (bRect.left < bulletRect.right && bRect.right > bulletRect.left && bRect.top < bulletRect.bottom && bRect.bottom > bulletRect.top) {
+                    // Collision detected
+                    gameContainer.removeChild(bullet);
+                    gameContainer.removeChild(b);
+                    score++;
+                    checkWin();
+                }
+            }
+        });
+
+        const enemies = document.querySelectorAll('.enemy');
+        enemies.forEach(enemy => {
+            const enemyRect = enemy.getBoundingClientRect();
+            const bulletRect = bullet.getBoundingClientRect();
+            if (enemyRect.left < bulletRect.right && enemyRect.right > bulletRect.left && enemyRect.top < bulletRect.bottom && enemyRect.bottom > bulletRect.top) {
+                gameContainer.removeChild(bullet);
+                gameContainer.removeChild(enemy);
+                score++;
+                checkWin();
+            }
+        });
+    }
+
+    function checkWin() {
+        if (score >= 10) {
+            isGameOver = true;
+            message.textContent = "You Win!";
+            message.style.display = 'block';
+            restartButton.style.display = 'block';
+        }
+    }
+
+    // Set game over condition if the character hits the border
+    setInterval(() => {
+        if (!isGameOver && (posX <= 0 || posY <= 0 || posX >= gameContainer.clientWidth - character.offsetWidth || posY >= gameContainer.clientHeight - character.offsetHeight)) {
+            isGameOver = true;
+            message.textContent = "Game Over!";
+            message.style.display = 'block';
+            restartButton.style.display = 'block';
+        }
+    }, 100);
+
+    // Create enemy characters
+    setInterval(() => {
+        if (!isGameOver) {
+            createEnemy();
+        }
+    }, 2000);
+
+    // Move enemies
+    setInterval(() => {
+        if (!isGameOver) {
+            moveEnemies();
+        }
+    }, 100);
+
+   function restartGame() {
+    // Reset game state
+    posX = 0;
+    posY = 0;
+    isGameOver = false;
+    score = 0;
+    message.style.display = 'none';
+    restartButton.style.display = 'none';
+
+    // Remove all bullets and enemies
+    const bullets = document.querySelectorAll('.bullet');
+    bullets.forEach(bullet => gameContainer.removeChild(bullet));
+    const enemies = document.querySelectorAll('.enemy');
+    enemies.forEach(enemy => gameContainer.removeChild(enemy));
+
+    // Start the game again
+    updateCharacterPosition();
+}
+
+// Set game over condition if the character hits the border
+setInterval(() => {
+    if (!isGameOver && (posX <= 0 || posY <= 0 || posX >= gameContainer.clientWidth - character.offsetWidth || posY >= gameContainer.clientHeight - character.offsetHeight)) {
+        isGameOver = true;
+        message.textContent = "Game Over!";
+        message.style.display = 'block';
+        restartButton.style.display = 'block';
+    }
+}, 100);
+
+// Create enemy characters
+setInterval(() => {
+    if (!isGameOver) {
+        createEnemy();
+    }
+}, 2000);
+
+// Move enemies
+setInterval(() => {
+    if (!isGameOver) {
+        moveEnemies();
+    }
+}, 100);
+</script>
+</body>
+</html>
