@@ -7,11 +7,17 @@
             margin: 0;
             overflow: hidden; /* Hide scrollbars */
             background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
         }
         #game-container {
             position: relative;
             width: 100%;
-            height: 100vh;
+            height: 80vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -20,19 +26,21 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            background-color: red;
+            background-color: #FF5A5F;
+            border-radius: 50%;
         }
         .bullet {
             position: absolute;
             width: 20px;
             height: 20px;
-            background-color: blue;
+            background-color: #007A87;
+            border-radius: 50%;
         }
         .enemy {
             position: absolute;
             width: 50px;
             height: 50px;
-            background-color: green;
+            background-color: #00A19D;
             border-radius: 50%;
         }
         #message {
@@ -42,6 +50,7 @@
             transform: translate(-50%, -50%);
             font-size: 24px;
             display: none;
+            color: #333;
         }
         #restart-btn {
             position: fixed;
@@ -52,12 +61,16 @@
             font-size: 18px;
             cursor: pointer;
             display: none;
+            background-color: #FF5A5F;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
-<h1 style="text-align: center;">Character Shooting Game</h1>
+<h1>Character Shooting Game</h1>
 
 <div id="game-container">
     <div id="character"></div>
@@ -182,6 +195,25 @@
         }
     }
 
+    function restartGame() {
+        // Reset game state
+        posX = 0;
+        posY = 0;
+        isGameOver = false;
+        score = 0;
+        message.style.display = 'none';
+        restartButton.style.display = 'none';
+
+        // Remove all bullets and enemies
+        const bullets = document.querySelectorAll('.bullet');
+        bullets.forEach(bullet => gameContainer.removeChild(bullet));
+        const enemies = document.querySelectorAll('.enemy');
+        enemies.forEach(enemy => gameContainer.removeChild(enemy));
+
+        // Start the game again
+        updateCharacterPosition();
+    }
+
     // Set game over condition if the character hits the border
     setInterval(() => {
         if (!isGameOver && (posX <= 0 || posY <= 0 || posX >= gameContainer.clientWidth - character.offsetWidth || posY >= gameContainer.clientHeight - character.offsetHeight)) {
@@ -205,49 +237,6 @@
             moveEnemies();
         }
     }, 100);
-
-   function restartGame() {
-    // Reset game state
-    posX = 0;
-    posY = 0;
-    isGameOver = false;
-    score = 0;
-    message.style.display = 'none';
-    restartButton.style.display = 'none';
-
-    // Remove all bullets and enemies
-    const bullets = document.querySelectorAll('.bullet');
-    bullets.forEach(bullet => gameContainer.removeChild(bullet));
-    const enemies = document.querySelectorAll('.enemy');
-    enemies.forEach(enemy => gameContainer.removeChild(enemy));
-
-    // Start the game again
-    updateCharacterPosition();
-}
-
-// Set game over condition if the character hits the border
-setInterval(() => {
-    if (!isGameOver && (posX <= 0 || posY <= 0 || posX >= gameContainer.clientWidth - character.offsetWidth || posY >= gameContainer.clientHeight - character.offsetHeight)) {
-        isGameOver = true;
-        message.textContent = "Game Over!";
-        message.style.display = 'block';
-        restartButton.style.display = 'block';
-    }
-}, 100);
-
-// Create enemy characters
-setInterval(() => {
-    if (!isGameOver) {
-        createEnemy();
-    }
-}, 2000);
-
-// Move enemies
-setInterval(() => {
-    if (!isGameOver) {
-        moveEnemies();
-    }
-}, 100);
 </script>
 </body>
 </html>
