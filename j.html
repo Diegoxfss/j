@@ -28,6 +28,8 @@
             height: 60px;
             background-color: #FF5A5F;
             border-radius: 50%;
+            left: calc(50% - 30px);
+            top: calc(80% - 30px);
         }
         .bullet {
             position: absolute;
@@ -84,8 +86,8 @@
     const message = document.getElementById('message');
     const restartButton = document.getElementById('restart-btn');
 
-    let posX = 0;
-    let posY = 0;
+    let posX = gameContainer.clientWidth / 2 - character.offsetWidth / 2;
+    let posY = gameContainer.clientHeight * 0.8 - character.offsetHeight / 2;
     let isGameOver = false;
     let score = 0;
 
@@ -104,13 +106,13 @@
         const spacebar = 32;
 
         if (event.keyCode === arrowLeft && posX > 0) {
-            posX -= 10;
+            posX -= 5;
         } else if (event.keyCode === arrowUp && posY > 0) {
-            posY -= 10;
+            posY -= 5;
         } else if (event.keyCode === arrowRight && posX < gameContainer.clientWidth - character.offsetWidth) {
-            posX += 10;
+            posX += 5;
         } else if (event.keyCode === arrowDown && posY < gameContainer.clientHeight - character.offsetHeight) {
-            posY += 10;
+            posY += 5;
         } else if (event.keyCode === spacebar) {
             shootBullet();
         }
@@ -145,15 +147,20 @@
         const enemy = document.createElement('div');
         enemy.classList.add('enemy');
         enemy.style.left = Math.random() * (gameContainer.clientWidth - 50) + 'px';
-        enemy.style.top = Math.random() * (gameContainer.clientHeight - 50) + 'px';
+        enemy.style.top = '0px'; // Appear at the top
         gameContainer.appendChild(enemy);
     }
 
     function moveEnemies() {
         const enemies = document.querySelectorAll('.enemy');
         enemies.forEach(enemy => {
-            enemy.style.left = parseInt(enemy.style.left) + Math.random() * 10 - 5 + 'px';
-            enemy.style.top = parseInt(enemy.style.top) + Math.random() * 10 - 5 + 'px';
+            let enemyPosY = parseInt(enemy.style.top);
+            enemyPosY += Math.random() * 5 + 1; // Move downward
+            enemy.style.top = enemyPosY + 'px';
+
+            if (enemyPosY > gameContainer.clientHeight) {
+                gameContainer.removeChild(enemy); // Remove enemies that reach the bottom
+            }
         });
     }
 
@@ -197,8 +204,8 @@
 
     function restartGame() {
         // Reset game state
-        posX = 0;
-        posY = 0;
+        posX = gameContainer.clientWidth / 2 - character.offsetWidth / 2;
+        posY = gameContainer.clientHeight * 0.8 - character.offsetHeight / 2;
         isGameOver = false;
         score = 0;
         message.style.display = 'none';
@@ -214,22 +221,12 @@
         updateCharacterPosition();
     }
 
-    // Set game over condition if the character hits the border
-    setInterval(() => {
-        if (!isGameOver && (posX <= 0 || posY <= 0 || posX >= gameContainer.clientWidth - character.offsetWidth || posY >= gameContainer.clientHeight - character.offsetHeight)) {
-            isGameOver = true;
-            message.textContent = "Game Over!";
-            message.style.display = 'block';
-            restartButton.style.display = 'block';
-        }
-    }, 100);
-
     // Create enemy characters
     setInterval(() => {
         if (!isGameOver) {
             createEnemy();
         }
-    }, 2000);
+    }, 1500); // Decreased enemy creation interval
 
     // Move enemies
     setInterval(() => {
